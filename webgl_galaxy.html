@@ -27,8 +27,10 @@
 
 			var camera, controls, scene, renderer;
 
-			var renderer, objects;
-			var pointLight;
+			var renderer, planets, orbitPeriods, startPositions;
+			var lights = [];
+
+
 
 			init();
 			animate();
@@ -61,32 +63,13 @@
 
 				scene = new THREE.Scene();
 
-				// Grid
+				// Orbitals
 
-				var size = 500, step = 100;
-				var geometry = new THREE.Geometry();
-
-				for ( var i = - size; i <= size; i += step ) {
-
-					geometry.vertices.push( new THREE.Vector3( - size, - 120, i ) );
-					geometry.vertices.push( new THREE.Vector3(   size, - 120, i ) );
-
-					geometry.vertices.push( new THREE.Vector3( i, - 120, - size ) );
-					geometry.vertices.push( new THREE.Vector3( i, - 120,   size ) );
-
-				}
-
-				var material = new THREE.LineBasicMaterial( { color: 0xffffff, opacity: 0.2 } );
-
-				var line = new THREE.Line( geometry, material, THREE.LinePieces );
-				scene.add( line );
-
-				// Spheres
-
-				var geometry = new THREE.SphereGeometry( 100, 14, 7 );
+		    var orbital_material = new THREE.LineBasicMaterial( { color: 0xffffff } )
 
 				var materials = [
 
+					new THREE.MeshBasicMaterial( { map: THREE.ImageUtils.loadTexture( 'textures/sun.jpg' ) } ),
 					new THREE.MeshBasicMaterial( { map: THREE.ImageUtils.loadTexture( 'textures/mercury.jpg' ) } ),
 					new THREE.MeshBasicMaterial( { map: THREE.ImageUtils.loadTexture( 'textures/venus.jpg' ) } ),
 					new THREE.MeshBasicMaterial( { map: THREE.ImageUtils.loadTexture( 'textures/earth.jpg' ) } ),
@@ -95,49 +78,66 @@
 					new THREE.MeshBasicMaterial( { map: THREE.ImageUtils.loadTexture( 'textures/saturn.jpg' ) } ),
 					new THREE.MeshBasicMaterial( { map: THREE.ImageUtils.loadTexture( 'textures/uranus.jpg' ) } ),
 					new THREE.MeshBasicMaterial( { map: THREE.ImageUtils.loadTexture( 'textures/neptune.jpg' ) } ),
-					new THREE.MeshBasicMaterial( { map: THREE.ImageUtils.loadTexture( 'textures/pluto.jpg' ) } ),
+
 
 				];
 
-				for ( var i = 0, l = geometry.faces.length; i < l; i ++ ) {
 
-					var face = geometry.faces[ i ];
-					if ( Math.random() > 0.5 ) face.materialIndex = Math.floor( Math.random() * materials.length );
+				
 
-				}
 
 				materials.push( new THREE.MeshFaceMaterial( materials ) );
 
-				objects = [];
-
+				planets = [];
+				orbitPeriods = [88, 225, 365, 687, 4330, 10748, 30666, 60149];
+				startPositions = [];
+				for ( var i = 0, l = 8; i < l; i++ ) {
+					startPositions[i] = Math.random() * 360;
+				}	
 				var position = 0;
 				
+				// sun
+				var sun = new THREE.Mesh( new THREE.SphereGeometry( 50, 100, 25 ), materials[ 0 ] );
+				sun.position.x = 0;
+				//sun.position.z = Math.floor( 1 / 5 ) * 200 - 200;
+
+				//planets.push( sun );
+				scene.add( sun );
+
+				fi = 	Math.PI
 				// mercury
-				var mercury = new THREE.Mesh( new THREE.SphereGeometry( 3.8, 14, 7 ), materials[ 0 ] );
-				mercury.position.x = -500;
-				//mercury.position.z = Math.floor( 1 / 5 ) * 200 - 200;
+				var mercury = new THREE.Mesh( new THREE.SphereGeometry( 6.1, 20, 10 ), materials[ 1 ] );
+				mercury.position.x = 150 * Math.cos(fi);
+				mercury.position.z = 150 * Math.cos(fi);
 
 				mercury.rotation.x = Math.random() * 200 - 100;
 				mercury.rotation.y = Math	.random() * 200 - 100;
 				mercury.rotation.z = Math.random() * 200 - 100;
 
-				objects.push( mercury );
+				mercury_orbital = new THREE.CircleGeometry( 150, 50 );
+				mercury_orbital.vertices.shift();
+				line = new THREE.Line( mercury_orbital, orbital_material );
+				line.rotation.x = Math.random() * 200 - 100;
+				console.log(line);
+				scene.add( new THREE.Line( mercury_orbital, orbital_material ) );
+
+				planets.push( mercury );
 				scene.add( mercury );
 
 				// venus
-				var venus   = new THREE.Mesh( new THREE.SphereGeometry( 9.5, 14, 7 ), materials[ 1 ] );
-				venus.position.x = -400;
-				//venus.position.z = Math.floor( 2 / 5 ) * 200 - 200;
+				var venus   = new THREE.Mesh( new THREE.SphereGeometry( 15.1, 20, 10 ), materials[ 2 ] );
+				venus.position.x = 200 * Math.cos(fi);
+				venus.position.z = 200 * Math.cos(fi);
 
 				venus.rotation.x = Math.random() * 200 - 100;
 				venus.rotation.y = Math.random() * 200 - 100;
 				venus.rotation.z = Math.random() * 200 - 100;
 
-				objects.push( venus );
+				planets.push( venus );
 				scene.add( venus );
 
 				// earth
-				var earth   = new THREE.Mesh( new THREE.SphereGeometry( 10, 14, 7 ), materials[ 2 ] );
+				var earth   = new THREE.Mesh( new THREE.SphereGeometry( 15.9, 20, 10 ), materials[ 3 ] );
 				earth.position.x = -300;
 				//earth.position.z = Math.floor( 3 / 5 ) * 200 - 200;
 
@@ -145,82 +145,76 @@
 				earth.rotation.y = Math.random() * 200 - 100;
 				earth.rotation.z = Math.random() * 200 - 100;
 
-				objects.push( earth );
+				planets.push( earth );
 				scene.add( earth );
 
 				// mars
-				var mars   = new THREE.Mesh( new THREE.SphereGeometry( 5.3, 14, 7 ), materials[ 3 ] );
-				mars.position.x = -200;
+				var mars   = new THREE.Mesh( new THREE.SphereGeometry( 8.5, 20, 10 ), materials[ 4 ] );
+				mars.position.x = -350;
 				//mars.position.z = Math.floor( 4 / 5 ) * 200 - 200;
 
 				mars.rotation.x = Math.random() * 200 - 100;
 				mars.rotation.y = Math.random() * 200 - 100;
 				mars.rotation.z = Math.random() * 200 - 100;
 
-				objects.push( mars );	
+				planets.push( mars );	
 				scene.add( mars );	
 
 				// jupiter
-				var jupiter   = new THREE.Mesh( new THREE.SphereGeometry( 112, 14, 7 ), materials[ 4 ] );
-				jupiter.position.x = 0;
+				var jupiter   = new THREE.Mesh( new THREE.SphereGeometry( 33.4, 20, 10 ), materials[ 5 ] );
+				jupiter.position.x = 500;
 				//jupiter.position.z = Math.floor( 5 / 5 ) * 200 - 200;
 
-				jupiter.rotation.x = Math.random() * 200 - 100;
-				jupiter.rotation.y = Math.random() * 200 - 100;
-				jupiter.rotation.z = Math.random() * 200 - 100;
+				//jupiter.rotation.x = Math.random() * 200 - 100;
+				//jupiter.rotation.y = Math.random() * 200 - 100;
+				//jupiter.rotation.z = Math.random() * 200 - 100;
 
-				objects.push( jupiter );
+				planets.push( jupiter );
 				scene.add( jupiter );			
 
 				// saturn
-				var saturn   = new THREE.Mesh( new THREE.SphereGeometry( 94.1, 14, 7 ), materials[ 5 ] );
-				saturn.position.x = 200;
-				//saturn.position.z = Math.floor( 6 / 5 ) * 200 - 200;
+				var saturn   = new THREE.Mesh( new THREE.SphereGeometry( 27.2, 20, 10 ), materials[ 6 ] );
+				saturn.position.x = 600;
+				saturn.position.z = Math.floor( 6 ) * 200 - 200;
 
 				saturn.rotation.x = Math.random() * 200 - 100;
 				saturn.rotation.y = Math.random() * 200 - 100;
 				saturn.rotation.z = Math.random() * 200 - 100;
 
-				objects.push( saturn );
+				planets.push( saturn );
 				scene.add( saturn );
 
 				// uranus
-				var uranus   = new THREE.Mesh( new THREE.SphereGeometry( 39.8, 14, 7 ), materials[ 6 ] );
-				uranus.position.x = 400;
+				var uranus   = new THREE.Mesh( new THREE.SphereGeometry( 12.1, 20, 10 ), materials[ 7 ] );
+				uranus.position.x = 800;
 				//uranus.position.z = Math.floor( 7 / 5 ) * 200 - 200;
 
 				uranus.rotation.x = Math.random() * 200 - 100;
 				uranus.rotation.y = Math.random() * 200 - 100;
 				uranus.rotation.z = Math.random() * 200 - 100;
 
-				objects.push( uranus );
+				planets.push( uranus );
 				scene.add( uranus );
 
 				// neptune
-				var neptune   = new THREE.Mesh( new THREE.SphereGeometry( 38.1, 14, 7 ), materials[ 7 ] );
-				neptune.position.x = 500;
+				var neptune   = new THREE.Mesh( new THREE.SphereGeometry( 12.7, 20, 10 ), materials[ 8 ] );
+				neptune.position.x = 900;
 				//neptune.position.z = Math.floor( 8 / 5 ) * 200 - 200;
 
 				neptune.rotation.x = Math.random() * 200 - 100;
 				neptune.rotation.y = Math.random() * 200 - 100;
 				neptune.rotation.z = Math.random() * 200 - 100;
 
-				objects.push( neptune );
+				planets.push( neptune );
 				scene.add( neptune );
 
 
-				// pluto
-				var pluto   = new THREE.Mesh( new THREE.SphereGeometry( 24, 14, 7 ), materials[ 8 ] );
-				pluto.position.x = 695;
-				//pluto.position.z = Math.floor( 3 / 5 ) * 200 - 200;
-
-				pluto.rotation.x = Math.random() * 200 - 100;
-				pluto.rotation.y = Math.random() * 200 - 100;
-				pluto.rotation.z = Math.random() * 200 - 100;
-
-				objects.push( pluto );
-				scene.add( pluto );
-
+   			for ( var i = 0, l = 1000; i < l; i++ ) {
+   				light = new THREE.PointLight( 0xffffff, 10, Math.random() * 500 );
+   				light.position.set( Math.random() * 500, Math.random() * 500, Math.random() * 500 );
+   				lights.push( light );
+					scene.add( light );
+   			}
 
 				var PI2 = Math.PI * 2;
 				var program = function ( context ) {
@@ -230,24 +224,6 @@
 					context.fill();
 
 				}
-
-				// Lights
-
-				scene.add( new THREE.AmbientLight( Math.random() * 0x202020 ) );
-
-				var directionalLight = new THREE.DirectionalLight( Math.random() * 0xffffff );
-				directionalLight.position.x = Math.random() - 0.5;
-				directionalLight.position.y = Math.random() - 0.5;
-				directionalLight.position.z = Math.random() - 0.5;
-				directionalLight.position.normalize();
-				scene.add( directionalLight );
-
-				pointLight = new THREE.PointLight( 0xffffff, 1 );
-				scene.add( pointLight );
-
-				var sprite = new THREE.Sprite( new THREE.SpriteCanvasMaterial( { color: 0xffffff, program: program } ) );
-				sprite.scale.set( 8, 8, 8 );
-				pointLight.add( sprite );
 
 				renderer = new THREE.CanvasRenderer();
 				renderer.setPixelRatio( window.devicePixelRatio );
@@ -311,7 +287,7 @@
 				stats.update();
 
 			}
-
+				
 			function render() {
 
 				var timer = Date.now() * 0.0001;
@@ -319,19 +295,23 @@
 				//camera.position.x = Math.cos( timer ) * 1000;
 				//camera.position.z = Math.sin( timer ) * 1000;
 				//camera.lookAt( scene.position );
+				radius = 100;
+				for ( var i = 0, l = planets.length; i < l; i++ ) {
 
-				for ( var i = 0, l = objects.length; i < l; i++ ) {
-
-					var object = objects[ i ];
+					var object = planets[ i ];
 
 					//object.rotation.x += 0.01;
-					object.rotation.y += 0.05;
+					object.rotation.y += 0.005;
+					object.position.x = radius * Math.cos(startPositions[i]);
+					object.position.z = radius * Math.sin(startPositions[i]);
+
+					radius += 70;
+					startPositions[i] +=  Math.PI /  (orbitPeriods[i])   
 
 				}
 
-				pointLight.position.x = Math.sin( timer * 7 ) * 300;
-				pointLight.position.y = Math.cos( timer * 5 ) * 400;
-				pointLight.position.z = Math.cos( timer * 3 ) * 300;
+				planets[4].position.y += 0.005;
+
 
 				renderer.render( scene, camera );
 
